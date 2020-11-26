@@ -20,6 +20,8 @@ static NSString *const kRemoteNotificationRegistrationFailed = @"RemoteNotificat
 
 static NSString *const kErrorUnableToRequestPermissions = @"E_UNABLE_TO_REQUEST_PERMISSIONS";
 
+static id <UNUserNotificationCenterDelegate> delegate;
+
 #if !TARGET_OS_TV
 @interface RNCPushNotificationIOS ()
 @property (nonatomic, strong) NSMutableDictionary *remoteNotificationCallbacks;
@@ -129,6 +131,11 @@ API_AVAILABLE(ios(10.0)) {
                                                     userInfo:[RCTConvert RCTFormatUNNotificationResponse:response]];
 }
 
++ (void)setADelegate:(id <UNUserNotificationCenterDelegate>)adelegate
+{
+    delegate = adelegate;
+}
+
 - (void)handleLocalNotificationReceived:(NSNotification *)notification
 {
   [self sendEventWithName:@"localNotificationReceived" body:notification.userInfo];
@@ -155,6 +162,8 @@ API_AVAILABLE(ios(10.0)) {
 - (void)handleRemoteNotificationsRegistered:(NSNotification *)notification
 {
   [self sendEventWithName:@"remoteNotificationsRegistered" body:notification.userInfo];
+  UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+  center.delegate = delegate;
 }
 
 - (void)handleRemoteNotificationRegistrationError:(NSNotification *)notification
